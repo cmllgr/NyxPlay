@@ -23,13 +23,8 @@ Optional tools used by the default example scripts:
 - hyprland (`hyprctl`)
 - steam
 
-## Installation on Arch Linux
-
-Build and install the package:
-
-```bash
-makepkg -si
-```
+## Installation 
+...
 
 ## Configuration
 ...
