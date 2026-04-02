@@ -1,0 +1,67 @@
+[device]
+name = "Xbox Wireless Controller"
+uniq = ""
+
+[timing]
+combo_cooldown_seconds = 0.25
+volume_cooldown_seconds = 0.20
+poweroff_hold_seconds = 2.0
+poweroff_cooldown_seconds = 5.0
+hold_action_seconds = 0.4
+trigger_press_threshold = 200
+trigger_release_threshold = 100
+loop_sleep_seconds = 0.01
+device_poll_seconds = 1.0
+
+[logging]
+level = "INFO"
+debug_commands = false
+
+[notifications]
+enabled = true
+timeout_ms = 1200
+title = "NyxPlay"
+
+[rumble]
+enabled = true
+strong_magnitude = 30000
+weak_magnitude = 20000
+duration_ms = 180
+
+[audio]
+tv_sink_id = 75
+desk_sink_id = 46
+volume_step_percent = 5
+max_volume = 1.5
+
+[launcher]
+tv_monitor = "HDMI-A-1"
+tv_monitor_conf = "HDMI-A-1,3840x2160@143.94,0x1800,1.6"
+gamescope_command = [
+  "env",
+  "STEAM_MULTIPLE_XWAYLANDS=1",
+  "gamescope",
+  "--backend", "sdl",
+  "--xwayland-count", "2",
+  "-e",
+  "-w", "3840",
+  "-h", "2160",
+  "-r", "144",
+  "-f",
+  "--", "steam", "-gamepadui"
+]
+gamescope_start_delay_seconds = 1.0
+gamescope_stop_delay_seconds = 0.5
+
+[bindings]
+primary_mod_1 = "BTN_TL"
+primary_mod_2 = "BTN_TR"
+action_gamescope_on = "BTN_SOUTH"
+action_gamescope_off = "BTN_EAST"
+action_audio_toggle = "BTN_NORTH"
+action_mic_toggle = "BTN_WEST"
+dpad_vertical_axis = "ABS_HAT0Y"
+dpad_up_value = -1
+dpad_down_value = 1
+power_mod_analog_1 = "ABS_Z"
+power_mod_analog_2 = "ABS_RZ"

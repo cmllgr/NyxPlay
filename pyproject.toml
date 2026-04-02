@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nyxplay"
 version = "0.1.0"
-description = "Xbox controller combo daemon for launching Steam Big Picture through gamescope and other desktop actions"
+description = "Xbox controller combo daemon to launch Steam Big Picture through gamescope"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
@@ -13,14 +13,20 @@ authors = [
   { name = "Camille" }
 ]
 dependencies = [
-  "evdev"
+  "evdev>=1.9.0"
+]
+
+[project.optional-dependencies]
+dev = [
+  "ruff>=0.11.0"
 ]
 
 [project.scripts]
-nyxplay = "nyxplay.main:main"
+nyxplay = "nyxplay.main:run"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
+include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -28,3 +34,16 @@ where = ["src"]
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+  "E",
+  "F",
+  "I",
+  "B",
+  "UP"
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
