@@ -1,0 +1,31 @@
+[controller]
+device_name = "Xbox Wireless Controller"
+reconnect_delay_seconds = 2.0
+
+[combos]
+hold_seconds = 0.75
+combo_cooldown_seconds = 0.20
+volume_cooldown_seconds = 0.05
+
+[steam]
+enabled = true
+env = { STEAM_MULTIPLE_XWAYLANDS = "1" }
+command = ["steam", "-gamepadui"]
+
+[gamescope]
+enabled = true
+binary = "gamescope"
+args = [
+  "--backend", "sdl",
+  "--xwayland-count", "2",
+  "-e",
+  "-f"
+]
+
+[actions]
+notify = true
+audio_toggle_command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"]
+mic_toggle_command = ["wpctl", "set-mute", "@DEFAULT_AUDIO_SOURCE@", "toggle"]
+volume_up_command = ["wpctl", "set-volume", "-l", "1.5", "@DEFAULT_AUDIO_SINK@", "5%+"]
+volume_down_command = ["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%-"]
+poweroff_command = ["systemctl", "poweroff"]

@@ -1,0 +1,12 @@
+[Unit]
+Description=Xbox Salon combo daemon
+After=graphical-session.target
+
+[Service]
+Type=simple
+ExecStart=%h/.local/bin/nyxplay
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target
