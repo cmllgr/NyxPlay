@@ -29,14 +29,15 @@ weak_magnitude = 20000
 duration_ms = 180
 
 [audio]
-tv_sink_id = 75
-desk_sink_id = 46
+tv_sink_name = "GB202 High Definition Audio Controller Pro 8"
+desk_sink_name = "GB202 High Definition Audio Controller Pro"
 volume_step_percent = 5
 max_volume = 1.5
 
 [launcher]
 tv_monitor = "HDMI-A-1"
 tv_monitor_conf = "HDMI-A-1,3840x2160@143.94,0x1800,1.6"
+tv_workspace = 9
 gamescope_command = [
   "env",
   "STEAM_MULTIPLE_XWAYLANDS=1",

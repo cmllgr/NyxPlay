@@ -2,10 +2,14 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import subprocess
+import threading
 import time
 from collections.abc import Callable
 from typing import Any
+
+from evdev import InputDevice, ecodes, ff
 
 from .config import AppConfig
 
@@ -93,6 +97,57 @@ def notify(cfg: AppConfig, message: str, title: str | None = None) -> None:
     )
 
 
+def find_sink_id_by_name(cfg: AppConfig, sink_name: str) -> int | None:
+    result = run_command(cfg, ["wpctl", "status"], capture=True)
+    if result is None or not result.stdout:
+        logger.warning("Unable to read wpctl status")
+        return None
+
+    in_sinks_section = False
+
+    for raw_line in result.stdout.splitlines():
+        line = raw_line.strip()
+
+        if not line:
+            continue
+
+        if "Sinks:" in line:
+            in_sinks_section = True
+            continue
+
+        if in_sinks_section and line.startswith("Sources:"):
+            break
+
+        if not in_sinks_section:
+            continue
+
+        cleaned = line.lstrip("│* ").strip()
+
+        match = re.match(r"^(\d+)\.\s+(.*)$", cleaned)
+        if not match:
+            continue
+
+        sink_id = int(match.group(1))
+        sink_label = match.group(2)
+
+        if sink_name.lower() in sink_label.lower():
+            return sink_id
+
+    logger.warning("No sink matched name: %s", sink_name)
+    return None
+
+
+def set_default_sink_by_name(cfg: AppConfig, sink_name: str) -> bool:
+    sink_id = find_sink_id_by_name(cfg, sink_name)
+    if sink_id is None:
+        logger.warning("Cannot set default sink, no match for: %s", sink_name)
+        return False
+
+    logger.info('Audio sink match "%s" -> id %s', sink_name, sink_id)
+    run_command(cfg, ["wpctl", "set-default", str(sink_id)])
+    return True
+
+
 def get_wpctl_muted(cfg: AppConfig, target: str) -> bool:
     result = run_command(cfg, ["wpctl", "get-volume", target], capture=True)
     if result is None:
@@ -149,3 +204,37 @@ def volume_down(cfg: AppConfig) -> None:
 
 def poweroff(cfg: AppConfig) -> None:
     run_command(cfg, ["systemctl", "poweroff"], detach=True)
+
+
+def start_rumble_async(device: InputDevice | None, cfg: AppConfig) -> None:
+    if device is None or not cfg.rumble.enabled:
+        return
+
+    def _worker() -> None:
+        try:
+            capabilities = device.capabilities()
+            ff_caps = capabilities.get(ecodes.EV_FF, [])
+            if not ff_caps:
+                return
+
+            rumble = ff.Rumble(
+                strong_magnitude=cfg.rumble.strong_magnitude,
+                weak_magnitude=cfg.rumble.weak_magnitude,
+            )
+            effect = ff.Effect(
+                ecodes.FF_RUMBLE,
+                -1,
+                0,
+                ff.Trigger(0, 0),
+                ff.Replay(cfg.rumble.duration_ms, 0),
+                ff.EffectType(ff_rumble_effect=rumble),
+            )
+
+            effect_id = device.upload_effect(effect)
+            device.write(ecodes.EV_FF, effect_id, 1)
+            time.sleep(cfg.rumble.duration_ms / 1000.0)
+            device.erase_effect(effect_id)
+        except Exception as exc:
+            logger.debug("Rumble unavailable: %s", exc)
+
+    threading.Thread(target=_worker, daemon=True).start()

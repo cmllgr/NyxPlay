@@ -51,8 +51,8 @@ class RumbleConfig:
 
 @dataclass(slots=True)
 class AudioConfig:
-    tv_sink_id: int | None
-    desk_sink_id: int | None
+    tv_sink_name: str | None
+    desk_sink_name: str | None
     volume_step_percent: int
     max_volume: float
 
@@ -61,6 +61,7 @@ class AudioConfig:
 class LauncherConfig:
     tv_monitor: str
     tv_monitor_conf: str
+    tv_workspace: int
     gamescope_command: list[str]
     gamescope_start_delay_seconds: float
     gamescope_stop_delay_seconds: float
@@ -150,9 +151,11 @@ def load_config(path: Path | None = None) -> AppConfig:
             duration_ms=int(rumble["duration_ms"]),
         ),
         audio=AudioConfig(
-            tv_sink_id=(int(audio["tv_sink_id"]) if audio.get("tv_sink_id") is not None else None),
-            desk_sink_id=(
-                int(audio["desk_sink_id"]) if audio.get("desk_sink_id") is not None else None
+            tv_sink_name=(
+                str(audio["tv_sink_name"]) if audio.get("tv_sink_name") is not None else None
+            ),
+            desk_sink_name=(
+                str(audio["desk_sink_name"]) if audio.get("desk_sink_name") is not None else None
             ),
             volume_step_percent=int(audio["volume_step_percent"]),
             max_volume=float(audio["max_volume"]),
@@ -160,6 +163,7 @@ def load_config(path: Path | None = None) -> AppConfig:
         launcher=LauncherConfig(
             tv_monitor=str(launcher["tv_monitor"]),
             tv_monitor_conf=str(launcher["tv_monitor_conf"]),
+            tv_workspace=int(launcher["tv_workspace"]),
             gamescope_command=[str(x) for x in launcher["gamescope_command"]],
             gamescope_start_delay_seconds=float(launcher["gamescope_start_delay_seconds"]),
             gamescope_stop_delay_seconds=float(launcher["gamescope_stop_delay_seconds"]),
