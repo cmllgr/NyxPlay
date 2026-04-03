@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1] - 2026-04-03
+
+### Changed
+- Switched gamescope launching flow to Hyprland-managed execution
+- Improved TV monitor activation through `hyprctl keyword monitor`
+
+### Fixed
+- Initial cleanup of gamescope session handling
+
 ## [0.1.0] - 2026-04-03
 
 ### Added
@@ -14,9 +23,4 @@ All notable changes to this project will be documented in this file.
 - Rumble support
 - Dedicated roadmap
 
-### Changed
-- Switched gamescope launching flow to Hyprland-managed execution
-- Improved TV monitor activation through `hyprctl keyword monitor`
 
-### Fixed
-- Initial cleanup of gamescope session handling
