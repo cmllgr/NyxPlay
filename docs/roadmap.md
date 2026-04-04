@@ -26,18 +26,10 @@
 **Goal:**
 - enable HDR support when launching gamescope on compatible displays
 
-**Tasks:**
-- identify correct HDR flags for gamescope
-- integrate HDR options into `gamescope_command`
-- make HDR configurable via `config.toml`
-- test behavior on target TV
-- verify compatibility with Steam Big Picture / Gamepad UI
-- document SDR vs HDR behavior
-
-**Expected result:**
-- clean and optional HDR mode
-- stable behavior on TV
-- clear and maintainable configuration
+**Problem:**
+- current nested Hyprland gamescope flow does not expose HDR
+- HDR requires a dedicated DRM gamescope session outside the current desktop session
+- investigate TTY/session-based launch flow
 
 ---
 
