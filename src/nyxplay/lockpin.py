@@ -125,6 +125,9 @@ class LockPinController:
             self._ipc_call("submit")
 
     def handle_event(self, event_code: int, event_value: int) -> bool:
+        if not self.is_lock_active():
+            return False
+
         # BTN_SOUTH = A
         if event_code == ecodes.BTN_SOUTH and event_value == 1:
             self.accept()
