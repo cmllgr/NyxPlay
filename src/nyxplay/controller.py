@@ -8,6 +8,7 @@ from evdev import InputDevice, ecodes
 
 from .combos import RuntimeState, handle_abs_event, handle_key_event, tick
 from .config import AppConfig
+from .lockpin import LockPinController
 
 logger = logging.getLogger("nyxplay")
 
@@ -55,6 +56,7 @@ def wait_for_device(cfg: AppConfig) -> str:
 
 def run_listener(cfg: AppConfig) -> None:
     state = RuntimeState()
+    lockpin = LockPinController()
 
     while True:
         device_path = wait_for_device(cfg)
@@ -68,6 +70,11 @@ def run_listener(cfg: AppConfig) -> None:
                 event = device.read_one()
 
                 while event is not None:
+                    if event.type in (ecodes.EV_ABS, ecodes.EV_KEY):
+                        if lockpin.handle_event(event.code, event.value):
+                            event = device.read_one()
+                            continue
+
                     if event.type == ecodes.EV_ABS:
                         handle_abs_event(cfg, state, event.code, event.value)
                     elif event.type == ecodes.EV_KEY:
