@@ -63,17 +63,44 @@ def run_listener(cfg: AppConfig) -> None:
 
             try:
                 device = InputDevice(device_path)
+                device_grabbed = False
+
                 logger.info("Connected to %s (%s)", device.path, device.name)
                 state.reset()
 
                 while True:
+                    lock_active = lockpin.is_lock_active()
+
+                    if lock_active and not device_grabbed:
+                        try:
+                            device.grab()
+                            device_grabbed = True
+                            state.reset()
+                            logger.info("Controller grabbed for lock screen")
+                        except OSError as exc:
+                            logger.warning("Failed to grab controller: %s", exc)
+
+                    elif not lock_active and device_grabbed:
+                        try:
+                            device.ungrab()
+                            logger.info("Controller released after lock screen")
+                        except OSError as exc:
+                            logger.warning("Failed to ungrab controller: %s", exc)
+                        finally:
+                            device_grabbed = False
+                            state.reset()
+
                     event = device.read_one()
 
                     while event is not None:
-                        if event.type in (ecodes.EV_ABS, ecodes.EV_KEY):
-                            if lockpin.handle_event(event.code, event.value):
-                                event = device.read_one()
-                                continue
+                        # While locked, swallow every controller event so nothing
+                        # leaks to gamescope / Steam / the game in background.
+                        if lock_active:
+                            if event.type in (ecodes.EV_ABS, ecodes.EV_KEY):
+                                lockpin.handle_event(event.code, event.value)
+
+                            event = device.read_one()
+                            continue
 
                         if event.type == ecodes.EV_ABS:
                             handle_abs_event(cfg, state, event.code, event.value)
@@ -82,7 +109,9 @@ def run_listener(cfg: AppConfig) -> None:
 
                         event = device.read_one()
 
-                    tick(cfg, state, device)
+                    if not lock_active:
+                        tick(cfg, state, device)
+
                     time.sleep(cfg.timing.loop_sleep_seconds)
 
             except OSError as exc:
@@ -91,5 +120,10 @@ def run_listener(cfg: AppConfig) -> None:
             except Exception as exc:
                 logger.exception("Unexpected error: %s", exc)
                 time.sleep(2.0)
+            finally:
+                try:
+                    device.ungrab()
+                except Exception:
+                    pass
     finally:
         lockpin.close()
