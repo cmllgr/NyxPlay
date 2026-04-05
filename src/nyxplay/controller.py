@@ -6,7 +6,13 @@ import time
 
 from evdev import InputDevice, ecodes
 
-from .combos import RuntimeState, handle_abs_event, handle_key_event, tick
+from .combos import (
+    RuntimeState,
+    handle_abs_event,
+    handle_key_event,
+    modifiers_active,
+    tick,
+)
 from .config import AppConfig
 from .lockpin import LockPinController
 
@@ -93,25 +99,26 @@ def run_listener(cfg: AppConfig) -> None:
                     event = device.read_one()
 
                     while event is not None:
-                        # While locked, swallow every controller event so nothing
-                        # leaks to gamescope / Steam / the game in background.
-                        if lock_active:
-                            if event.type in (ecodes.EV_ABS, ecodes.EV_KEY):
-                                lockpin.handle_event(event.code, event.value)
-
-                            event = device.read_one()
-                            continue
-
+                        # Always feed the combo state machine first.
                         if event.type == ecodes.EV_ABS:
                             handle_abs_event(cfg, state, event.code, event.value)
                         elif event.type == ecodes.EV_KEY:
                             handle_key_event(cfg, state, device, event.code, event.value)
 
+                        # While locked, route inputs to the PIN controller only when
+                        # combo modifiers are NOT active. This preserves lock combos
+                        # such as LB+RB+A / LB+RB+B / LB+RB+D-pad.
+                        if lock_active and event.type in (ecodes.EV_ABS, ecodes.EV_KEY):
+                            if not modifiers_active(state):
+                                lockpin.handle_event(event.code, event.value)
+
+                            event = device.read_one()
+                            continue
+
                         event = device.read_one()
 
-                    if not lock_active:
-                        tick(cfg, state, device)
-
+                    # Tick must always run so held combos still work while locked.
+                    tick(cfg, state, device)
                     time.sleep(cfg.timing.loop_sleep_seconds)
 
             except OSError as exc:
