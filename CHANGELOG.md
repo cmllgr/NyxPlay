@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2026-04-05
+
+### Added
+- Added lockscreen PIN navigation support for Xbox controller input using virtual keyboard-based lock input routing
+
+### Fixed
+- Fixed clean shutdown handling in `main`
+
+### Documentation
+- Clarified HDR limitations with nested gamescope on Hyprland
+
 ## [0.1.1] - 2026-04-03
 
 ### Changed
@@ -22,5 +33,3 @@ All notable changes to this project will be documented in this file.
 - TOML-based configuration with dataclasses
 - Rumble support
 - Dedicated roadmap
-
-
