@@ -28,9 +28,8 @@ def find_device_path(device_name: str, device_uniq: str | None = None) -> str | 
         if dev.name != device_name:
             continue
 
-        if device_uniq is not None:
-            if (dev.uniq or "").lower() != device_uniq.lower():
-                continue
+        if device_uniq is not None and (dev.uniq or "").lower() != device_uniq.lower():
+            continue
 
         return path
 
@@ -58,36 +57,39 @@ def run_listener(cfg: AppConfig) -> None:
     state = RuntimeState()
     lockpin = LockPinController()
 
-    while True:
-        device_path = wait_for_device(cfg)
+    try:
+        while True:
+            device_path = wait_for_device(cfg)
 
-        try:
-            device = InputDevice(device_path)
-            logger.info("Connected to %s (%s)", device.path, device.name)
-            state.reset()
+            try:
+                device = InputDevice(device_path)
+                logger.info("Connected to %s (%s)", device.path, device.name)
+                state.reset()
 
-            while True:
-                event = device.read_one()
-
-                while event is not None:
-                    if event.type in (ecodes.EV_ABS, ecodes.EV_KEY):
-                        if lockpin.handle_event(event.code, event.value):
-                            event = device.read_one()
-                            continue
-
-                    if event.type == ecodes.EV_ABS:
-                        handle_abs_event(cfg, state, event.code, event.value)
-                    elif event.type == ecodes.EV_KEY:
-                        handle_key_event(cfg, state, device, event.code, event.value)
-
+                while True:
                     event = device.read_one()
 
-                tick(cfg, state, device)
-                time.sleep(cfg.timing.loop_sleep_seconds)
+                    while event is not None:
+                        if event.type in (ecodes.EV_ABS, ecodes.EV_KEY):
+                            if lockpin.handle_event(event.code, event.value):
+                                event = device.read_one()
+                                continue
 
-        except OSError as exc:
-            logger.warning("Device error: %s. Waiting again...", exc)
-            time.sleep(1.0)
-        except Exception as exc:
-            logger.exception("Unexpected error: %s", exc)
-            time.sleep(2.0)
+                        if event.type == ecodes.EV_ABS:
+                            handle_abs_event(cfg, state, event.code, event.value)
+                        elif event.type == ecodes.EV_KEY:
+                            handle_key_event(cfg, state, device, event.code, event.value)
+
+                        event = device.read_one()
+
+                    tick(cfg, state, device)
+                    time.sleep(cfg.timing.loop_sleep_seconds)
+
+            except OSError as exc:
+                logger.warning("Device error: %s. Waiting again...", exc)
+                time.sleep(1.0)
+            except Exception as exc:
+                logger.exception("Unexpected error: %s", exc)
+                time.sleep(2.0)
+    finally:
+        lockpin.close()
