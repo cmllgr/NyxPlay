@@ -1,0 +1,16 @@
+[Unit]
+Description=NyxPlay Xbox controller combo listener (dev)
+After=graphical-session.target
+Wants=graphical-session.target
+PartOf=graphical-session.target
+
+[Service]
+Type=simple
+WorkingDirectory=/lab/dev/nyxplay
+ExecStart=/lab/dev/nyxplay/.venv/bin/nyxplay
+Restart=on-failure
+RestartSec=2
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=default.target
